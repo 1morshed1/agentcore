@@ -1,0 +1,54 @@
+# ---------------------------------------------------------------------------
+# pyproject.toml — the single source of truth for packaging & tooling.
+#
+# We use the modern PEP 621 `[project]` table so that `pip install .` works
+# with any PEP 517 build backend. The whole point of this project is to prove
+# you can build an agent framework WITHOUT the heavy LLM libraries, so the
+# runtime dependency list is deliberately tiny: just `httpx` for HTTP.
+# ---------------------------------------------------------------------------
+
+[build-system]
+# setuptools is the most widely available build backend; nothing exotic.
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentcore"
+version = "0.1.0"
+description = "A dependency-minimal multi-agent orchestrator built on raw LLM APIs — no LangChain, no LangGraph."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Fahim Morshed" }]
+keywords = ["llm", "agents", "orchestration", "react", "tool-calling", "multi-agent"]
+
+# The ONLY runtime dependency. `httpx` gives us a clean sync + async HTTP
+# client. Everything else (schema generation, ReAct loop, DAG execution,
+# tracing) we write ourselves.
+dependencies = [
+    "httpx>=0.24",
+]
+
+[project.optional-dependencies]
+# Extras you only need for development, not for using the library.
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.urls]
+Homepage = "https://github.com/1morshed1/agentcore"
+
+[tool.setuptools.packages.find]
+# Only ship the library package; keep examples/tests out of the wheel.
+include = ["agentcore*"]
+
+# ---------------------------------------------------------------------------
+# pytest configuration
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `asyncio_mode = auto` lets us write `async def test_...` without decorating
+# every single async test with @pytest.mark.asyncio.
+asyncio_mode = "auto"
+addopts = "-ra -q"
