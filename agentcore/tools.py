@@ -203,8 +203,12 @@ class Tool:
     def execute(self, **kwargs: Any) -> Any:
         """Run the tool synchronously and return its result.
 
-        If the wrapped function is ``async``, we spin up an event loop to run it
-        to completion so that a synchronous agent can still use async tools.
+        If the wrapped function is ``async``, we run it to completion so that a
+        synchronous agent can still use async tools. Normally that's a simple
+        ``asyncio.run``. But if we're *already* inside a running event loop (e.g.
+        someone called a sync agent from async code), ``asyncio.run`` would raise
+        "cannot be called from a running event loop". So in that case we run the
+        coroutine on a fresh loop in a worker thread and block for the result.
 
         Any exception raised *inside* the tool is wrapped in
         :class:`ToolExecutionError` so the caller can distinguish a tool failure
@@ -212,7 +216,7 @@ class Tool:
         """
         try:
             if inspect.iscoroutinefunction(self.func):
-                return asyncio.run(self.func(**kwargs))
+                return _run_coroutine_blocking(self.func(**kwargs))
             return self.func(**kwargs)
         except Exception as exc:  # noqa: BLE001 - we intentionally catch all tool errors
             raise ToolExecutionError(self.name, exc) from exc
@@ -360,6 +364,28 @@ def validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> Non
             schema.get("name", "tool"),
             ValueError(f"Unexpected argument(s): {', '.join(unexpected)}"),
         )
+
+
+def _run_coroutine_blocking(coro: Any) -> Any:
+    """Run a coroutine to completion and return its result, from any context.
+
+    * No event loop running -> just ``asyncio.run``.
+    * A loop is already running on this thread -> ``asyncio.run`` is illegal, so
+      we run the coroutine on a brand-new loop inside a worker thread and block
+      until it finishes. This keeps sync ``execute()`` usable even when called
+      from within async code.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # No loop running -> safe to use asyncio.run directly.
+        return asyncio.run(coro)
+
+    # A loop is running here; offload to a separate thread with its own loop.
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
 
 
 def parse_tool_arguments(raw_arguments: str | dict[str, Any]) -> dict[str, Any]:
