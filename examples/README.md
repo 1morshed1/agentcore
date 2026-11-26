@@ -6,7 +6,7 @@ Four runnable examples, from "no API key needed" to "real multi-agent workflow".
 |------|-------------------|-------|
 | [`01_offline_demo.py`](./01_offline_demo.py) | **No** — uses `MockLLM` | The whole pipeline (agent → tools → workflow → trace) with scripted model responses. Run this first. |
 | [`02_single_agent.py`](./02_single_agent.py) | Yes | A single ReAct agent with real tools against a live model |
-| [`03_market_research.py`](./03_market_research.py) | Yes | The 3-agent research→analysis→report workflow from the plan |
+| [`03_market_research.py`](./03_market_research.py) | Yes | The 3-agent research→analysis→report workflow |
 | [`04_parallel_research.py`](./04_parallel_research.py) | Yes | A branched DAG where two researchers run in parallel |
 
 ## Running the offline demo (no setup)

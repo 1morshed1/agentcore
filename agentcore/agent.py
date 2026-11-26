@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .errors import MaxStepsExceeded, ToolExecutionError
@@ -213,7 +213,9 @@ class Agent:
         """One timed LLM call, recorded on the trace."""
         start = time.time()
         response = self.llm.complete(messages, tool_schemas, temperature=self.temperature)
-        tracer.log_llm_call(self.name, response.model or self.llm.model, response.usage, time.time() - start)
+        tracer.log_llm_call(
+            self.name, response.model or self.llm.model, response.usage, time.time() - start
+        )
         return response
 
     def _execute_tool(self, call: ToolCall, tracer: ExecutionTracer) -> str:
@@ -277,7 +279,9 @@ class Agent:
             response = await asyncio.to_thread(
                 self.llm.complete, memory.to_list(), tool_schemas, temperature=self.temperature
             )
-            tracer.log_llm_call(self.name, response.model or self.llm.model, response.usage, time.time() - start)
+            tracer.log_llm_call(
+                self.name, response.model or self.llm.model, response.usage, time.time() - start
+            )
 
             memory.add(response.raw_message or {"role": "assistant", "content": response.content})
 

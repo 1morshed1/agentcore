@@ -102,6 +102,6 @@ class Memory:
         return {"messages": self.messages}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Memory":
+    def from_dict(cls, data: dict[str, Any]) -> Memory:
         """Rebuild a Memory from :meth:`to_dict` output."""
         return cls(messages=list(data.get("messages", [])))

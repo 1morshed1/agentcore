@@ -135,9 +135,9 @@ def test_openai_tool_result_message_shape():
 # AnthropicClient
 # ---------------------------------------------------------------------------
 def test_anthropic_parses_content_blocks_and_tool_use():
-    client = AnthropicClient(model="claude-3-5-haiku-latest", api_key="k")
+    client = AnthropicClient(model="claude-haiku-5-5", api_key="k")
     data = {
-        "model": "claude-3-5-haiku-latest",
+        "model": "claude-haiku-5-5",
         "content": [
             {"type": "text", "text": "Let me calculate."},
             {"type": "tool_use", "id": "toolu_1", "name": "add", "input": {"a": 2, "b": 3}},
@@ -153,7 +153,7 @@ def test_anthropic_parses_content_blocks_and_tool_use():
 
 
 def test_anthropic_tool_result_message_shape():
-    client = AnthropicClient(model="claude-3-5-haiku-latest", api_key="k")
+    client = AnthropicClient(model="claude-haiku-5-5", api_key="k")
     msg = client.format_tool_result_message(ToolCall("toolu_1", "add", {}), "5")
     assert msg["role"] == "user"
     assert msg["content"][0]["type"] == "tool_result"
@@ -163,3 +163,57 @@ def test_anthropic_tool_result_message_shape():
 def test_missing_api_key_raises():
     with pytest.raises(LLMError):
         OpenAIClient(model="gpt-4o-mini", api_key="")
+
+
+def test_anthropic_request_body_omits_sampling_params(monkeypatch):
+    """Current Claude models 400 on temperature/top_p/top_k, so none are sent."""
+    sent: dict = {}
+
+    class _FakeClient:
+        def __init__(self, *a, **k):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def post(self, url, headers, json):
+            sent.update(json)
+            return httpx.Response(
+                200,
+                json={"model": json["model"], "content": [{"type": "text", "text": "hi"}]},
+                request=httpx.Request("POST", url),
+            )
+
+    monkeypatch.setattr(httpx, "Client", _FakeClient)
+    client = AnthropicClient(api_key="k")
+    resp = client.complete(
+        [{"role": "system", "content": "be brief"}, {"role": "user", "content": "hello"}],
+        temperature=0.7,
+    )
+    assert resp.content == "hi"
+    assert sent["model"] == "claude-haiku-5-5"
+    assert sent["system"] == "be brief"
+    assert all(m["role"] != "system" for m in sent["messages"])
+    for param in ("temperature", "top_p", "top_k"):
+        assert param not in sent
+
+
+def test_anthropic_thinking_blocks_skipped_in_text_but_kept_for_echo():
+    client = AnthropicClient(api_key="k")
+    blocks = [
+        {"type": "thinking", "thinking": "", "signature": "sig"},
+        {"type": "text", "text": "Answer."},
+    ]
+    resp = client._parse_response({"content": blocks})
+    assert resp.content == "Answer."
+    assert resp.raw_message == {"role": "assistant", "content": blocks}
+
+
+def test_current_claude_pricing():
+    usage = Usage(prompt_tokens=1_000_000, completion_tokens=1_000_000)
+    assert estimate_cost("claude-haiku-5-5", usage) == pytest.approx(0.60)
+    assert estimate_cost("claude-sonnet-5-5", usage) == pytest.approx(12.00)
+    assert estimate_cost("claude-opus-5-5", usage) == pytest.approx(24.00)

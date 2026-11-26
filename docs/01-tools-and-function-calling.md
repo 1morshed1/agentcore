@@ -49,8 +49,7 @@ error-prone. So `@tool` **generates it from the function itself**:
 
 ```python
 @tool(description="Search the web and return the top results")
-def web_search(query: str, limit: int = 5) -> str:
-    ...
+def web_search(query: str, limit: int = 5) -> str: ...
 ```
 
 From this we derive:

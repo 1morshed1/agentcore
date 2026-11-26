@@ -17,7 +17,7 @@ from agentcore import Agent, OpenAIClient, tool
 
 # To use Anthropic instead, swap the import and the client line:
 #   from agentcore import AnthropicClient
-#   llm = AnthropicClient("claude-3-5-haiku-latest")
+#   llm = AnthropicClient("claude-haiku-5-5")
 
 
 @tool(description="Add two numbers")

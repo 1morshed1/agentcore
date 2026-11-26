@@ -26,9 +26,9 @@ Usage is deliberately effortless:
 
 ```python
 cp = Checkpoint("checkpoints/market_research.json")
-result = workflow.run(checkpoint=cp)   # saves after each node completes
+result = workflow.run(checkpoint=cp)  # saves after each node completes
 # ...if it crashes, run the exact same line again:
-result = workflow.run(checkpoint=cp)   # researcher & analyst are skipped
+result = workflow.run(checkpoint=cp)  # researcher & analyst are skipped
 ```
 
 On resume, `workflow.run` calls `checkpoint.load_outputs()`, seeds the `outputs`

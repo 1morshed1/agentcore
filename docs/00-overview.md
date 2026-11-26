@@ -68,9 +68,9 @@ agentcore
 
 ## Design decisions taken here (and why)
 
-1. **Provider abstraction from day one.** The plan mentioned OpenAI, but real
-   portfolios impress more when they show you can support *both* OpenAI and
-   Anthropic behind one interface. So `LLMClient` is an abstract base with
+1. **Provider abstraction from day one.** Supporting *both* OpenAI and
+   Anthropic behind one interface forces the abstraction to be honest about
+   their differences (tool-call shapes, system prompts, result messages). So `LLMClient` is an abstract base with
    `OpenAIClient` and `AnthropicClient` implementations. See note 02.
 
 2. **A `MockLLM` client.** Tests must run with no API key and no network. So we

@@ -32,10 +32,12 @@ def test_direct_answer_no_tools():
 
 
 def test_single_tool_call_then_answer():
-    llm = MockLLM(responses=[
-        LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 2, "b": 3})]),
-        LLMResponse(content="The sum is 5."),
-    ])
+    llm = MockLLM(
+        responses=[
+            LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 2, "b": 3})]),
+            LLMResponse(content="The sum is 5."),
+        ]
+    )
     agent = Agent("calc", "use tools", llm, tools=[add])
     result = agent.run("2+3?")
     assert result.output == "The sum is 5."
@@ -47,10 +49,12 @@ def test_single_tool_call_then_answer():
 
 
 def test_unknown_tool_becomes_observation_not_crash():
-    llm = MockLLM(responses=[
-        LLMResponse(content="", tool_calls=[ToolCall("1", "does_not_exist", {})]),
-        LLMResponse(content="recovered"),
-    ])
+    llm = MockLLM(
+        responses=[
+            LLMResponse(content="", tool_calls=[ToolCall("1", "does_not_exist", {})]),
+            LLMResponse(content="recovered"),
+        ]
+    )
     agent = Agent("a", "role", llm, tools=[add])
     result = agent.run("go")
     assert result.output == "recovered"
@@ -59,10 +63,12 @@ def test_unknown_tool_becomes_observation_not_crash():
 
 
 def test_tool_that_raises_becomes_observation():
-    llm = MockLLM(responses=[
-        LLMResponse(content="", tool_calls=[ToolCall("1", "broken", {})]),
-        LLMResponse(content="handled the error"),
-    ])
+    llm = MockLLM(
+        responses=[
+            LLMResponse(content="", tool_calls=[ToolCall("1", "broken", {})]),
+            LLMResponse(content="handled the error"),
+        ]
+    )
     agent = Agent("a", "role", llm, tools=[broken])
     result = agent.run("go")
     assert result.output == "handled the error"
@@ -70,11 +76,13 @@ def test_tool_that_raises_becomes_observation():
 
 
 def test_bad_arguments_become_observation():
-    llm = MockLLM(responses=[
-        # Missing required 'b'.
-        LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 1})]),
-        LLMResponse(content="ok"),
-    ])
+    llm = MockLLM(
+        responses=[
+            # Missing required 'b'.
+            LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 1})]),
+            LLMResponse(content="ok"),
+        ]
+    )
     agent = Agent("a", "role", llm, tools=[add])
     result = agent.run("go")
     assert result.output == "ok"
@@ -83,9 +91,11 @@ def test_bad_arguments_become_observation():
 
 def test_max_steps_exceeded():
     # The model keeps calling a tool forever; max_steps must stop it.
-    looping = MockLLM(responses=lambda msgs: LLMResponse(
-        content="", tool_calls=[ToolCall("1", "add", {"a": 1, "b": 1})]
-    ))
+    looping = MockLLM(
+        responses=lambda msgs: LLMResponse(
+            content="", tool_calls=[ToolCall("1", "add", {"a": 1, "b": 1})]
+        )
+    )
     agent = Agent("a", "role", looping, tools=[add], max_steps=3)
     with pytest.raises(MaxStepsExceeded):
         agent.run("loop forever")
@@ -111,10 +121,12 @@ def test_result_exposes_cost_and_tokens():
 
 
 async def test_async_run_matches_sync():
-    llm = MockLLM(responses=[
-        LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 4, "b": 5})]),
-        LLMResponse(content="nine"),
-    ])
+    llm = MockLLM(
+        responses=[
+            LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 4, "b": 5})]),
+            LLMResponse(content="nine"),
+        ]
+    )
     agent = Agent("a", "role", llm, tools=[add])
     result = await agent.arun("4+5?")
     assert result.output == "nine"

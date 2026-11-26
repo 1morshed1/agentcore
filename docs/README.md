@@ -1,6 +1,6 @@
-# agentcore — Learning Notes
+# agentcore — Design Notes
 
-These notes are written **for learning**. The code in `agentcore/` is heavily
+These notes explain how agentcore is built. The code in `agentcore/` is heavily
 commented, but code comments explain *what a line does*. These documents explain
 the bigger picture: *why the design is shaped the way it is*, what the
 alternatives were, and what a framework like LangChain/LangGraph is doing under

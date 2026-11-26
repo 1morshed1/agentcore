@@ -32,7 +32,7 @@ this loop with tracing and error handling layered on.
 ## The single most important line
 
 ```python
-memory.add(response.raw_message)   # BEFORE handling the tool calls
+memory.add(response.raw_message)  # BEFORE handling the tool calls
 ```
 
 Order matters and providers enforce it: the assistant's tool-call message must

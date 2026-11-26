@@ -22,9 +22,10 @@ read top to bottom.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from .agent import Agent, AgentResult
 from .errors import WorkflowError
@@ -90,7 +91,7 @@ class Workflow:
         self.nodes: dict[str, Node] = {}
 
     # -- graph construction --------------------------------------------------
-    def add_agent(self, agent: Agent, task: str, depends_on: list[str] | None = None) -> "Workflow":
+    def add_agent(self, agent: Agent, task: str, depends_on: list[str] | None = None) -> Workflow:
         """Register an agent as a node. Returns ``self`` for fluent chaining.
 
         Raises:
@@ -219,8 +220,7 @@ class Workflow:
                 # Multiple independent nodes: run them concurrently.
                 with ThreadPoolExecutor(max_workers=max_workers) as pool:
                     futures = {
-                        pool.submit(self._run_node, name, outputs, tracer): name
-                        for name in pending
+                        pool.submit(self._run_node, name, outputs, tracer): name for name in pending
                     }
                     for future in as_completed(futures):
                         name = futures[future]

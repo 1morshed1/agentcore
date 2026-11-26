@@ -127,9 +127,7 @@ class ExecutionTracer:
         self.record(TraceEvent(type=EventType.AGENT_START, agent=agent, message=task))
 
     def log_agent_end(self, agent: str, output: str) -> None:
-        self.record(
-            TraceEvent(type=EventType.AGENT_END, agent=agent, message=_truncate(output))
-        )
+        self.record(TraceEvent(type=EventType.AGENT_END, agent=agent, message=_truncate(output)))
 
     def log_handoff(self, from_agent: str, to_agent: str) -> None:
         self.record(
@@ -229,7 +227,7 @@ class ExecutionTracer:
             f"duration: {s['total_duration_s']:.2f}s"
         )
 
-    def merge(self, other: "ExecutionTracer") -> None:
+    def merge(self, other: ExecutionTracer) -> None:
         """Absorb another tracer's events (used to roll agent traces up to a
         workflow-level trace)."""
         self.events.extend(other.events)
@@ -334,14 +332,14 @@ def _render_html(tracer: ExecutionTracer, title: str) -> str:
 <body>
   <h1>{html.escape(title)}</h1>
   <div class="summary">
-    <div class="stat"><b>${summary['total_cost_usd']:.4f}</b><span>cost</span></div>
-    <div class="stat"><b>{summary['total_tokens']}</b><span>tokens</span></div>
-    <div class="stat"><b>{summary['llm_calls']}</b><span>llm calls</span></div>
-    <div class="stat"><b>{summary['tool_calls']}</b><span>tool calls</span></div>
-    <div class="stat"><b>{summary['total_duration_s']:.2f}s</b><span>duration</span></div>
+    <div class="stat"><b>${summary["total_cost_usd"]:.4f}</b><span>cost</span></div>
+    <div class="stat"><b>{summary["total_tokens"]}</b><span>tokens</span></div>
+    <div class="stat"><b>{summary["llm_calls"]}</b><span>llm calls</span></div>
+    <div class="stat"><b>{summary["tool_calls"]}</b><span>tool calls</span></div>
+    <div class="stat"><b>{summary["total_duration_s"]:.2f}s</b><span>duration</span></div>
   </div>
   <div class="timeline">
-    {''.join(rows)}
+    {"".join(rows)}
   </div>
 </body>
 </html>"""

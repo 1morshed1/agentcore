@@ -1,18 +1,27 @@
 # agentcore
 
+[![Tests](https://github.com/1morshed1/agentcore/actions/workflows/tests.yml/badge.svg)](https://github.com/1morshed1/agentcore/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/python-3.10%20%E2%80%93%203.13-3776AB?logo=python&logoColor=white)
+![Dependencies](https://img.shields.io/badge/runtime%20deps-httpx%20only-success)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **A multi-agent orchestrator built on raw LLM APIs — no LangChain, no LangGraph, no CrewAI.**
 
 `agentcore` is a small, readable Python library that gives you agents, tools, and
 DAG-based multi-agent workflows on top of *raw* OpenAI/Anthropic HTTP calls. Its
-only runtime dependency is [`httpx`](https://www.python-httpx.org/). It does about
-80% of what LangGraph does, in a fraction of the code you can actually read.
+only runtime dependency is [`httpx`](https://www.python-httpx.org/). It covers the
+core of what LangGraph is used for — tool-calling agents, multi-agent DAGs, state
+handoffs, tracing and checkpointing — in a codebase small enough to read in an
+afternoon.
 
 ```python
 from agentcore import Agent, tool, OpenAIClient
 
+
 @tool(description="Add two numbers")
 def add(a: int, b: int) -> int:
     return a + b
+
 
 agent = Agent(
     name="calculator",
@@ -22,7 +31,7 @@ agent = Agent(
 )
 
 result = agent.run("What is 2 + 3?")
-print(result.output)     # -> "5"
+print(result.output)  # -> "5"
 print(result.summary())  # steps: 2 LLM / 1 tool | tokens: 210 | cost: $0.0001 | duration: 1.4s
 ```
 
@@ -30,19 +39,16 @@ print(result.summary())  # steps: 2 LLM / 1 tool | tokens: 210 | cost: $0.0001 |
 
 ## Why I built this
 
-My résumé lists LangChain, LangGraph, CrewAI, AutoGen, Google ADK, and MCP — five
-agent frameworks. The fair question a hiring manager has is: *"Can you build
-without them, or do you only know how to configure them?"*
-
-This project is my answer. I wanted to understand what `create_react_agent`
+I've worked with LangChain, LangGraph, CrewAI, AutoGen, Google ADK, and MCP. Using
+a framework well is not the same as knowing what it does, so I wanted to understand what `create_react_agent`
 **actually does** under the hood — how tool calling works at the protocol level,
 how conversation state survives across agent handoffs, how a ReAct loop is really
 structured, and how to make all of it observable and reliable. So I built it from
 scratch with nothing but Python and an HTTP client.
 
 The result taught me more about agents than any framework tutorial. Every design
-decision is written up as a **learning note** in [`docs/`](./docs/README.md), so
-the repository doubles as a guided tour of how agent frameworks work internally.
+decision is written up in [`docs/`](./docs/README.md), so the repository doubles
+as a guided tour of how agent frameworks work internally.
 
 ## What it does
 
@@ -101,8 +107,7 @@ See [`examples/`](./examples/README.md) for all four examples.
 
 ## The same agent: LangGraph vs agentcore
 
-The plan behind this project asked for a side-by-side comparison. Here it is — the
-same "call a tool, then answer" agent.
+The same "call a tool, then answer" agent, side by side:
 
 <table>
 <tr><th>LangGraph</th><th>agentcore</th></tr>
@@ -113,17 +118,17 @@ from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
 
+
 @tool
 def add(a: int, b: int) -> int:
     "Add two numbers"
     return a + b
 
+
 model = ChatOpenAI(model="gpt-4o-mini")
 graph = create_react_agent(model, tools=[add])
 
-result = graph.invoke(
-    {"messages": [("user", "What is 2 + 3?")]}
-)
+result = graph.invoke({"messages": [("user", "What is 2 + 3?")]})
 print(result["messages"][-1].content)
 ```
 
@@ -137,9 +142,11 @@ state handling are hidden inside the framework.
 ```python
 from agentcore import Agent, tool, OpenAIClient
 
+
 @tool(description="Add two numbers")
 def add(a: int, b: int) -> int:
     return a + b
+
 
 agent = Agent(
     name="calc",
@@ -178,8 +185,8 @@ handoffs, errors) and shows a header with total cost, tokens, and duration. You 
 also get the raw data:
 
 ```python
-result.tracer.save_json("trace.json")   # full structured trace + summary
-print(result.summary())                 # one-line summary
+result.tracer.save_json("trace.json")  # full structured trace + summary
+print(result.summary())  # one-line summary
 ```
 
 ## How it works (the short version)
@@ -254,9 +261,9 @@ agentcore/
 │   ├── workflow.py       # DAG orchestration with parallelism
 │   ├── persistence.py    # atomic checkpoint/resume
 │   └── errors.py         # the exception hierarchy
-├── docs/                 # learning notes — the "why" behind every module
+├── docs/                 # design notes — the "why" behind every module
 ├── examples/             # runnable examples (start with 01_offline_demo.py)
-└── tests/                # 60 offline tests
+└── tests/                # 63 offline tests
 ```
 
 ## License

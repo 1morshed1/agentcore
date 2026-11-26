@@ -6,8 +6,6 @@ should produce, and how tools behave when called with good and bad arguments.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import pytest
 
 from agentcore import Tool, tool
@@ -43,7 +41,7 @@ def test_default_values_make_params_optional():
 
 def test_optional_type_is_unwrapped():
     @tool(description="Maybe")
-    def maybe(x: Optional[str] = None) -> str:
+    def maybe(x: str | None = None) -> str:
         return x or ""
 
     # Optional[str] should become a plain string type, optionality via `required`.
@@ -74,11 +72,15 @@ def test_docstring_provides_description_and_param_docs():
         return query
 
     assert web_search.description == "Search the web and return the top results."
-    assert web_search.parameters["properties"]["query"]["description"] == "The search terms to look up."
+    assert (
+        web_search.parameters["properties"]["query"]["description"]
+        == "The search terms to look up."
+    )
 
 
 def test_missing_description_raises():
     with pytest.raises(ToolError):
+
         @tool()
         def no_desc(x: int) -> int:  # no description arg AND no docstring
             return x
@@ -86,6 +88,7 @@ def test_missing_description_raises():
 
 def test_var_args_rejected():
     with pytest.raises(ToolError):
+
         @tool(description="bad")
         def variadic(*args: int) -> int:
             return sum(args)

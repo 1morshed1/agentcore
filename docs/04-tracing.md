@@ -7,9 +7,8 @@ Pairs with: `agentcore/tracing.py`
 The moment an agent does more than one step, "it didn't work" becomes impossible
 to debug without a record of *what it actually did*. Did the model call the wrong
 tool? Did a tool error out? Did it loop 9 times burning tokens? A **trace**
-answers all of this. It's also what turns this project from a toy into something
-you can show off: an HTML timeline of an agent's reasoning is a great portfolio
-artifact.
+answers all of this, and an HTML timeline of an agent's reasoning makes a run
+easy to inspect and share.
 
 ## The data model: a flat, time-ordered event list
 
@@ -50,7 +49,7 @@ tells you *how long* and *how much*.
 
 1. **`to_dict()` / `to_json()`** — the full trace plus a computed `summary`
    block (total cost, tokens, call counts, duration). Log it, diff it, analyse it.
-2. **`summary()`** — the one-liner from the plan:
+2. **`summary()`** — a one-line summary:
    `steps: 3 LLM / 2 tool | tokens: 1240 | cost: $0.0031 | duration: 4.20s`.
 3. **`to_html()`** — a **self-contained** HTML timeline (all CSS inline, no external
    files). Colour-coded rows, a summary header, and truncated tool results. Open

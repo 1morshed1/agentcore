@@ -28,8 +28,9 @@ from __future__ import annotations
 import os
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 
@@ -74,7 +75,7 @@ class Usage:
     def total_tokens(self) -> int:
         return self.prompt_tokens + self.completion_tokens
 
-    def __add__(self, other: "Usage") -> "Usage":
+    def __add__(self, other: Usage) -> Usage:
         # Lets us sum usage across many calls with the built-in `sum()` idiom.
         return Usage(
             prompt_tokens=self.prompt_tokens + other.prompt_tokens,
@@ -120,12 +121,21 @@ _PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
     "gpt-4.1-mini": (0.40, 1.60),
     "gpt-4.1": (2.00, 8.00),
     "o3-mini": (1.10, 4.40),
+    # Anthropic — current generation
+    "claude-opus-5-5": (4.00, 20.00),
+    "claude-opus-5": (5.00, 25.00),
+    "claude-opus-4-8": (5.00, 25.00),
+    "claude-opus-4-7": (5.00, 25.00),
+    "claude-opus-4-6": (5.00, 25.00),
+    "claude-sonnet-5-5": (2.00, 10.00),
+    "claude-sonnet-5": (2.00, 10.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
+    "claude-haiku-5-5": (0.10, 0.50),
+    "claude-haiku-4-5": (1.00, 5.00),
+    # Anthropic — older ids
     "claude-3-5-haiku": (0.80, 4.00),
     "claude-3-5-sonnet": (3.00, 15.00),
     "claude-3-opus": (15.00, 75.00),
-    "claude-sonnet": (3.00, 15.00),
-    "claude-opus": (15.00, 75.00),
-    "claude-haiku": (0.80, 4.00),
 }
 
 
@@ -232,7 +242,7 @@ class LLMClient(ABC):
                     )
 
             if attempt < self.max_retries:
-                time.sleep(2 ** attempt)  # 1s, 2s, 4s, ...
+                time.sleep(2**attempt)  # 1s, 2s, 4s, ...
 
         raise LLMError(f"LLM request failed after {self.max_retries + 1} attempts: {last_exc}")
 
@@ -337,6 +347,12 @@ class AnthropicClient(LLMClient):
     * The **system prompt is a top-level field**, not a message with
       ``role: "system"``. So we lift any system message out of ``messages``.
     * ``max_tokens`` is **required**.
+    * **Sampling parameters are not sent.** Current Claude models reject
+      ``temperature`` / ``top_p`` / ``top_k`` with HTTP 400, so ``temperature``
+      is accepted for interface compatibility and ignored here.
+    * Current models may return ``thinking`` blocks alongside text. They are
+      skipped when extracting text but kept in ``raw_message``, because the API
+      expects them echoed back unchanged on the next turn.
     * Content is a **list of typed blocks** (``text`` blocks and ``tool_use``
       blocks), not a single string. Tool-call arguments arrive already parsed as a
       dict (nice — no JSON string to decode).
@@ -350,10 +366,10 @@ class AnthropicClient(LLMClient):
 
     def __init__(
         self,
-        model: str = "claude-3-5-haiku-latest",
+        model: str = "claude-haiku-5-5",
         *,
         api_key: str | None = None,
-        max_tokens: int = 2048,
+        max_tokens: int = 16000,
         **kwargs: Any,
     ):
         super().__init__(model, **kwargs)
@@ -376,7 +392,7 @@ class AnthropicClient(LLMClient):
             "model": self.model,
             "messages": convo,
             "max_tokens": self.max_tokens,
-            "temperature": temperature,
+            # No "temperature": rejected by current Claude models (see class doc).
         }
         if system_prompt:
             body["system"] = system_prompt

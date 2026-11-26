@@ -46,3 +46,6 @@ htmlcov/
 *.trace.json
 *.trace.html
 checkpoints/
+
+# uv lockfile (library: dependency ranges live in pyproject.toml)
+uv.lock

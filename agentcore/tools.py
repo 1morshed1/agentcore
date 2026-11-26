@@ -32,8 +32,9 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Union, get_args, get_origin, get_type_hints
+from typing import Any, Union, get_args, get_origin, get_type_hints
 
 from .errors import ToolError, ToolExecutionError
 
@@ -128,7 +129,16 @@ def _parse_param_docs(docstring: str | None) -> dict[str, str]:
             continue
         if in_args:
             # A new section header (e.g. "Returns:") ends the Args block.
-            if header in ("returns", "return", "raises", "yields", "examples", "example", "note", "notes"):
+            if header in (
+                "returns",
+                "return",
+                "raises",
+                "yields",
+                "examples",
+                "example",
+                "note",
+                "notes",
+            ):
                 break
             if ":" in line:
                 name, _, desc = line.partition(":")
@@ -173,7 +183,9 @@ class Tool:
     name: str
     description: str
     func: Callable[..., Any]
-    parameters: dict[str, Any] = field(default_factory=lambda: {"type": "object", "properties": {}, "required": []})
+    parameters: dict[str, Any] = field(
+        default_factory=lambda: {"type": "object", "properties": {}, "required": []}
+    )
 
     # -- Schema serialisation ------------------------------------------------
     # The two big model vendors format tool schemas slightly differently, so we
@@ -235,7 +247,9 @@ class Tool:
             raise ToolExecutionError(self.name, exc) from exc
 
 
-def build_tool(func: Callable[..., Any], *, description: str | None = None, name: str | None = None) -> Tool:
+def build_tool(
+    func: Callable[..., Any], *, description: str | None = None, name: str | None = None
+) -> Tool:
     """Construct a :class:`Tool` from a function by introspecting it.
 
     This is the engine behind the :func:`tool` decorator, exposed separately so

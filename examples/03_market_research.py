@@ -1,4 +1,4 @@
-"""The market-research workflow from the plan — with a live model.
+"""The market-research workflow — with a live model.
 
 Requires an API key:
 
@@ -72,8 +72,14 @@ def main() -> None:
 
     wf = Workflow("market_research")
     wf.add_agent(researcher, task="Research competitor pricing for CRM software")
-    wf.add_agent(analyst, task="Analyse the pricing data and identify the average and trends", depends_on=["researcher"])
-    wf.add_agent(writer, task="Write a one-page CRM pricing analysis report", depends_on=["analyst"])
+    wf.add_agent(
+        analyst,
+        task="Analyse the pricing data and identify the average and trends",
+        depends_on=["researcher"],
+    )
+    wf.add_agent(
+        writer, task="Write a one-page CRM pricing analysis report", depends_on=["analyst"]
+    )
 
     # Checkpoint so a crash mid-run can be resumed by re-running this script.
     checkpoint = Checkpoint("checkpoints/market_research.json")

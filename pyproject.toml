@@ -34,6 +34,7 @@ dependencies = [
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
+    "ruff>=0.6",
 ]
 
 [project.urls]
@@ -51,4 +52,16 @@ testpaths = ["tests"]
 # `asyncio_mode = auto` lets us write `async def test_...` without decorating
 # every single async test with @pytest.mark.asyncio.
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 addopts = "-ra -q"
+
+# ---------------------------------------------------------------------------
+# ruff (lint + format), run in CI
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

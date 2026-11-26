@@ -23,8 +23,8 @@ The arrows are dependencies: `analyst` needs `researcher`'s output; `writer` nee
 ```python
 wf = Workflow("market_research")
 wf.add_agent(researcher, task="Research competitor pricing")
-wf.add_agent(analyst,    task="Find pricing trends", depends_on=["researcher"])
-wf.add_agent(writer,     task="Write a report",      depends_on=["analyst"])
+wf.add_agent(analyst, task="Find pricing trends", depends_on=["researcher"])
+wf.add_agent(writer, task="Write a report", depends_on=["analyst"])
 ```
 
 Each node is keyed by its agent's `name`; dependencies refer to those names.

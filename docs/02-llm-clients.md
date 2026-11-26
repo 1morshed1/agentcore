@@ -25,7 +25,8 @@ class** `LLMClient` with three things every provider must supply:
 
 ```python
 class LLMClient(ABC):
-    tool_schema_dialect: str          # "openai" or "anthropic"
+    tool_schema_dialect: str  # "openai" or "anthropic"
+
     def complete(messages, tools) -> LLMResponse: ...
     def format_tool_result_message(tool_call, result) -> dict: ...
 ```
@@ -93,10 +94,12 @@ You cannot (and must not) hit a paid API in a test suite. `MockLLM` is a fake
 that returns a **scripted list of `LLMResponse`s**, one per call:
 
 ```python
-llm = MockLLM(responses=[
-    LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 2, "b": 3})]),
-    LLMResponse(content="The answer is 5."),
-])
+llm = MockLLM(
+    responses=[
+        LLMResponse(content="", tool_calls=[ToolCall("1", "add", {"a": 2, "b": 3})]),
+        LLMResponse(content="The answer is 5."),
+    ]
+)
 ```
 
 Call 1 asks to run `add`; after the agent feeds back the result, call 2 gives the

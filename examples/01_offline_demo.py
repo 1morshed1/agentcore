@@ -12,7 +12,7 @@ sequence of responses instead of calling a real model. That lets you watch the
 exact mechanics — tool calls, handoffs, tracing — deterministically. Read the
 scripted responses below alongside `docs/05-react-loop.md`.
 
-This mirrors the plan's "market research" workflow: a researcher gathers data, an
+This is the "market research" workflow: a researcher gathers data, an
 analyst computes a number with a tool, and a writer produces the final report.
 """
 
@@ -47,9 +47,13 @@ def build_workflow() -> Workflow:
     researcher = Agent(
         name="researcher",
         role="You research competitor pricing.",
-        llm=MockLLM(responses=[
-            LLMResponse(content="Competitor CRM pricing: last year $80/seat, this year $92/seat."),
-        ]),
+        llm=MockLLM(
+            responses=[
+                LLMResponse(
+                    content="Competitor CRM pricing: last year $80/seat, this year $92/seat."
+                ),
+            ]
+        ),
     )
 
     # 2) Analyst: calls the pct_change tool, then reports the trend.
@@ -58,10 +62,15 @@ def build_workflow() -> Workflow:
     analyst = Agent(
         name="analyst",
         role="You analyse pricing data. Use tools for arithmetic.",
-        llm=MockLLM(responses=[
-            LLMResponse(content="", tool_calls=[ToolCall("call_1", "pct_change", {"old": 80, "new": 92})]),
-            LLMResponse(content="Pricing rose 15.0% year over year — an aggressive increase."),
-        ]),
+        llm=MockLLM(
+            responses=[
+                LLMResponse(
+                    content="",
+                    tool_calls=[ToolCall("call_1", "pct_change", {"old": 80, "new": 92})],
+                ),
+                LLMResponse(content="Pricing rose 15.0% year over year — an aggressive increase."),
+            ]
+        ),
         tools=[pct_change],
     )
 
@@ -69,13 +78,17 @@ def build_workflow() -> Workflow:
     writer = Agent(
         name="writer",
         role="You write concise, executive-ready reports.",
-        llm=MockLLM(responses=[
-            LLMResponse(content=(
-                "PRICING BRIEF\n"
-                "Competitor CRM pricing increased from $80 to $92 per seat (+15.0%).\n"
-                "Recommendation: revisit our own pricing to stay competitive."
-            )),
-        ]),
+        llm=MockLLM(
+            responses=[
+                LLMResponse(
+                    content=(
+                        "PRICING BRIEF\n"
+                        "Competitor CRM pricing increased from $80 to $92 per seat (+15.0%).\n"
+                        "Recommendation: revisit our own pricing to stay competitive."
+                    )
+                ),
+            ]
+        ),
     )
 
     wf = Workflow("market_research")

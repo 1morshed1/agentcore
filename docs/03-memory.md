@@ -10,10 +10,10 @@ What we call "memory" is just:
 
 ```python
 messages = [
-    {"role": "system",    "content": "You are a helpful assistant."},
-    {"role": "user",      "content": "What's 2 + 2?"},
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "What's 2 + 2?"},
     {"role": "assistant", "content": "4"},
-    {"role": "user",      "content": "And times 10?"},
+    {"role": "user", "content": "And times 10?"},
 ]
 ```
 
